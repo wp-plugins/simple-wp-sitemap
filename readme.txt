@@ -5,7 +5,7 @@ License URI: http://www.gnu.org/licenses/gpl.html
 Tags: sitemap, google sitemap, xml, simple sitemap, html, xml sitemap, html sitemap, seo, seo sitemap
 Requires at least: 4.0
 Tested up to: 4.1.1
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 
 An easy, fast and secure plugin that adds both an xml and an html sitemap to your site, which updates and maintains themselves so you dont have to!
 
@@ -21,9 +21,9 @@ So why use this instead of the other hundreds(?) of sitemap plugins that's out a
 
 == Installation ==
 
-1. a. Go to the plugins page in your wordpress admin area and hit "add new".
-   b. Either search for "simple-wp-sitemap" and click install, or hit "upload plugin" and upload the zip file.
-   c. Another way is by just uploading the "simple-wp-sitemap" folder via ftp to the /wp-content/plugins/ directory.
+1. 1. Go to the plugins page in your wordpress admin area and hit "add new".
+   2. Either search for "simple-wp-sitemap" and click install, or hit "upload plugin" and upload the zip file.
+   3. Another way is by just uploading the "simple-wp-sitemap" folder via ftp to the /wp-content/plugins/ directory.
 
 2. Activate the plugin and thats it, done.
 
@@ -35,9 +35,14 @@ None so far :)
 
 == Screenshots ==
 
-A couple will be added soon with examples on how to customize the plugin and how the sitemaps looks like.
+1. Settings page
 
 == Changelog ==
 
-= 1.0.0 =
+= 1.0.1 =
+* Added link to settings from the plugins page
+* Now also escapes output for user added urls
+* Added max-length for user added urls
+
+= 1.0.0 (March 14, 2015) =
 * Initial public release

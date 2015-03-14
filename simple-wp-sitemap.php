@@ -2,33 +2,38 @@
 
 /*
  * Plugin Name: Simple Wp Sitemap
- * Plugin URI: http://www.webbjocke.com/
+ * Plugin URI: https://wordpress.org/plugins/simple-wp-sitemap/
  * Description: An easy, fast and secure plugin that adds both an xml and an html sitemap to your site, which updates and maintains themselves so you dont have to!
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Webbjocke
  * Author URI: http://www.webbjocke.com/
  * License: GPLv3
  */
-
 
 // Main class
 
 class SimpleWpSitemap {
 	
 	// Updates the sitemaps
-	public static function updateSitemaps (){
+	public static function updateSitemaps(){
 		require_once('simpleWpMapBuilder.php');	
 		new SimpleWpMapBuilder('generate');
 	}
 	
 	// Delete the files sitemap.xml and sitemap.html on deactivate
-	public static function removeSitemaps (){
+	public static function removeSitemaps(){
 		require_once('simpleWpMapBuilder.php');
 		new SimpleWpMapBuilder('delete');
 	}
 	
+	// Adds a link to settings from the plugins page
+	public static function pluginSettingsLink($links){
+		$theLink = array('<a href="' . esc_url(admin_url('options-general.php?page=simpleWpSitemapSettings')) . '">' . __('Settings') . '</a>');
+		return array_merge($links, $theLink);
+	}
+	
 	// Sets the menu option for admins 
-	public static function sitemapAdminSetup (){
+	public static function sitemapAdminSetup(){
 		add_options_page('Simple Wp Sitemap', 'Simple Wp Sitemap', 'administrator', 'simpleWpSitemapSettings', array('SimpleWpSitemap', 'sitemapAdminArea'));
 		add_action('admin_init', array('SimpleWpSitemap', 'sitemapAdminInit'));
 	}
@@ -41,7 +46,7 @@ class SimpleWpSitemap {
 	}
 	
 	// Interface for settings page, also handles initial post request when settings are changed
-	public static function sitemapAdminArea (){
+	public static function sitemapAdminArea(){
 		require_once('simpleWpMapOptions.php');
 		$options = new SimpleWpMapOptions();
 		
@@ -66,7 +71,7 @@ class SimpleWpSitemap {
 					<tr><td><textarea rows="7" name="simple_wp_other_urls" class="large-text code"><?php echo $options->getOptions('simple_wp_other_urls'); ?></textarea></td></tr>
 					
 					<tr><td><b>Block pages</b></td></tr>
-					<tr><td>Add pages you dont't want to show up in the sitemaps. Same as above and just paste every link on a new row. (Hint: go to the sitemap.xml file and copy the whole link from there and paste it here).</td></tr>
+					<tr><td>Add pages you dont't want to show up in the sitemaps. Same as above and just paste every link on a new row. (Hint: Copy paste the whole url from the address bar on the actual pages).</td></tr>
 					<tr><td><textarea rows="7" name="simple_wp_block_urls" class="large-text code"><?php echo $options->getOptions('simple_wp_block_urls'); ?></textarea></td></tr>
 					
 					<tr><td><b>Like the plugin?</b></td></tr>
@@ -82,8 +87,10 @@ class SimpleWpSitemap {
 		</div>
 <?php }
 }
+
 add_action('admin_menu', array('SimpleWpSitemap', 'sitemapAdminSetup'));
 add_action('deleted_post', array('SimpleWpSitemap', 'updateSitemaps'));
 add_action('save_post', array('SimpleWpSitemap', 'updateSitemaps'));
 register_activation_hook(__FILE__, array('SimpleWpSitemap', 'updateSitemaps'));
 register_deactivation_hook(__FILE__, array('SimpleWpSitemap', 'removeSitemaps'));
+add_filter("plugin_action_links_" . plugin_basename(__FILE__), array('SimpleWpSitemap', 'pluginSettingsLink'));

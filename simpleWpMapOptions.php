@@ -31,7 +31,7 @@ class SimpleWpMapOptions {
 		if (!$this->isNullOrWhiteSpace($val)){
 			$str = '';
 			foreach($val as $sArr){
-				$str .= $sArr['url'] . "\n"; 
+				$str .= $this->sanitizeUrl($sArr['url']) . "\n"; 
 			}
 			return trim($str);
 		}
@@ -70,7 +70,7 @@ class SimpleWpMapOptions {
 							}
 						}
 					}
-					if (!$b){
+					if (!$b && strlen($u) < 500){
 						$arr[] = array('url' => $u, 'date' => date('Y-m-d\TH:i:sP'));
 					}
 				}

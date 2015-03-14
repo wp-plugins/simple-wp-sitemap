@@ -50,11 +50,13 @@ class SimpleWpMapBuilder {
 		if ($options){
 			foreach($options as $option){
 				if ($option && is_array($option)){
-					$html .= $this->getHtml($option['url'], $option['date']);
-					$xml .= $this->getXml($option['url'], $option['date']);
+					$url = esc_url($option['url']);
+					$date = esc_html($option['date']);
+					$html .= $this->getHtml($url, $date);
+					$xml .= $this->getXml($url, $date);
 				}
 			}
-		}		
+		}
 		return array('xml' => $xml, 'html' => $html);
 	}
 	
@@ -173,7 +175,7 @@ class SimpleWpMapBuilder {
 		}
 		
 		$otherPages = $this->getOtherPages();
-		if ($otherPages['xml']){			
+		if ($otherPages['xml']){
 			$xml .= $otherPages['xml'];
 			$html .= (!$others['html'] ? $this->htmlTableH('Other') : '') . $otherPages['html'];
 		}
