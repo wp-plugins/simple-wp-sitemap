@@ -5,7 +5,7 @@ License URI: http://www.gnu.org/licenses/gpl.html
 Tags: sitemap, google sitemap, xml, simple sitemap, html, xml sitemap, html sitemap, seo, seo sitemap
 Requires at least: 4.0
 Tested up to: 4.1.1
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 
 An easy, fast and secure plugin that adds both an xml and an html sitemap to your site, which updates and maintains themselves so you dont have to!
 
@@ -39,7 +39,10 @@ None so far :)
 
 == Changelog ==
 
-= 1.0.1 =
+= 1.0.2 (March 14, 2015) =
+* Messed up the upload, try again
+
+= 1.0.1 (March 14, 2015) =
 * Added link to settings from the plugins page
 * Now also escapes output for user added urls
 * Added max-length for user added urls

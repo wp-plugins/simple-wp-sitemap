@@ -4,7 +4,7 @@
  * Plugin Name: Simple Wp Sitemap
  * Plugin URI: https://wordpress.org/plugins/simple-wp-sitemap/
  * Description: An easy, fast and secure plugin that adds both an xml and an html sitemap to your site, which updates and maintains themselves so you dont have to!
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Webbjocke
  * Author URI: http://www.webbjocke.com/
  * License: GPLv3
