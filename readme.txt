@@ -5,7 +5,7 @@ License URI: http://www.gnu.org/licenses/gpl.html
 Tags: sitemap, google sitemap, xml, simple sitemap, html, xml sitemap, html sitemap, seo, seo sitemap
 Requires at least: 4.0
 Tested up to: 4.1.1
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 
 An easy, fast and secure plugin that adds both an xml and an html sitemap to your site, which updates and maintains themselves so you dont have to!
 
@@ -18,6 +18,8 @@ Reason the sitemaps are created as static files and aren't generated everytime s
 Also supports the option to add pages to the sitemaps that aren't part of your original wordpress site. For instance if you create a little html file and upload to your server and want it to be included in the sitemaps, it's easily done. You can also block pages that you don't want to be included in them.
 
 So why use this instead of the other hundreds(?) of sitemap plugins that's out are and which has thousands(?) of downloads? Well for one thing it's just an easy, fast and secure plugin that will just work for you, and it also makes the life pretty easy for search engines that wants to index your site!
+
+And yes, of course the sitemaps are mobile friendly :)
 
 == Installation ==
 
@@ -36,8 +38,17 @@ None so far :)
 == Screenshots ==
 
 1. Settings page
+2. Html sitemap
+3. Xml sitemap
 
 == Changelog ==
+
+= 1.0.3 (March 16, 2015) =
+* New layout for both html and xml sitemaps
+* Created a logo for the plugin
+* Added a banner
+* Added screenshots
+* Fixed bug with custom post types
 
 = 1.0.2 (March 14, 2015) =
 * Messed up the upload, try again

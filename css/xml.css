@@ -1,4 +1,5 @@
 urlset{
+    display: block;
     max-width: 960px;
     margin: 10px auto;
     font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
@@ -8,16 +9,10 @@ url{
     overflow: auto;
     padding: 5px;
     font-size: 0.9em;
-    border-top: 1px solid gray;
-    border-right: 1px solid gray;
-    border-left: 1px solid gray;
     word-break: break-all;
 }
 url:nth-child(2n+1){
     background: whitesmoke;
-}
-url:last-child{
-    border-bottom: 1px solid gray;
 }
 loc{
     float: left;
@@ -25,7 +20,7 @@ loc{
 lastmod{
     float: right;
 }
-@media screen and (max-width: 800px){
+@media screen and (max-width: 960px){
     loc, lastmod{
         width: 100%;
         float: left;
