@@ -6,27 +6,26 @@
 class SimpleWpMapOptions {
 	
 	// Updates the settings/options
-	public function setOptions($otherUrls, $blockUrls, $attrLink){
+	public function setOptions($otherUrls, $blockUrls, $attrLink, $categories, $tags, $authors){
 		update_option('simple_wp_other_urls', $this->addUrls($otherUrls, get_option('simple_wp_other_urls')));		
 		update_option('simple_wp_block_urls', $this->addUrls($blockUrls));
 		update_option('simple_wp_attr_link', $attrLink);
+		update_option('simple_wp_disp_categories', $categories);
+		update_option('simple_wp_disp_tags', $tags);
+		update_option('simple_wp_disp_authors', $authors);
 	}
 	
 	// Returns the options as strings to be displayed in textareas, and checkbox values
 	public function getOptions($val){
-		switch($val){
-			case 'simple_wp_other_urls':
-				$val = get_option('simple_wp_other_urls');
-				break;
-			case 'simple_wp_block_urls':
-				$val = get_option('simple_wp_block_urls');
-				break;
-			case 'simple_wp_attr_link':
-				$val = get_option('simple_wp_attr_link');
-				return $val ? 'checked' : ''; // return checkbox checked value right here and dont bother with the loop below
-			default:
-				$val = null;
+		if ($val === 'simple_wp_other_urls' || $val === 'simple_wp_block_urls'){
+			$val = get_option($val);
 		}
+		elseif ($val === 'simple_wp_attr_link' || $val === 'simple_wp_disp_categories' || $val === 'simple_wp_disp_tags' || $val === 'simple_wp_disp_authors'){
+			return get_option($val) ? 'checked' : ''; // return checkbox checked values right here and dont bother with the loop below
+		}
+		else{
+			$val = null;
+		}		
 		
 		if (!$this->isNullOrWhiteSpace($val)){
 			$str = '';
