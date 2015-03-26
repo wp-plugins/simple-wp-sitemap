@@ -7,6 +7,7 @@ class SimpleWpMapOptions {
 	
 	// Updates the settings/options
 	public function setOptions($otherUrls, $blockUrls, $attrLink, $categories, $tags, $authors){
+		date_default_timezone_set(get_option('timezone_string'));
 		update_option('simple_wp_other_urls', $this->addUrls($otherUrls, get_option('simple_wp_other_urls')));		
 		update_option('simple_wp_block_urls', $this->addUrls($blockUrls));
 		update_option('simple_wp_attr_link', $attrLink);

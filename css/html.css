@@ -4,43 +4,57 @@
 }
 body{
     font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-    font-size: 14px;
+    font-size: 13px;
+    background: #fff;
 }
 h1{
     font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    margin: 0 0.1% 25px 0.1%;
+    word-wrap: break-word;
 }
 a{
     text-decoration: none;
-    color: black;
-    word-break: break-all;
+    color: #000;
     transition: all 0.3s;
     display: inline-block;
+    word-wrap: break-word;
     vertical-align: top;
     max-width: 75%;
 }
 a:hover{
-    background: whitesmoke;
+    background: #f8f8f8;
+}
+a:active, a:focus{
+    color: #0000ff;
 }
 ul{
-    padding: 10px 0 10px 20px;
+    list-style-type: none;
+    padding: 0;
 }
-h1{
-    margin: 20px 0;
+li:nth-child(2n){
+    background: #f8f8f8;
 }
 #wrapper{
     max-width: 1080px;
-    padding: 0 2% 40px 2%;
-    margin: 0 auto;
+    padding: 15px 2% 40px 2%;
+    margin: 20px auto;
+}
+ul a, .date{
+    padding: 4px 0.1%;
 }
 .date, .header-date{
     float: right;
 }
+.date{
+    display: inline-block;
+}
 .header{
     overflow: auto;
     clear: left;
-    padding-bottom: 5px;
-    border-bottom: 5px solid lightgray;
+    padding: 7px 0.1% 7px 0.1%;
+    border-bottom: 5px solid #f1f1f1;
     font-size: 1.2em;
+    width: 99.8%;
 }
 .header-txt{
     float: left;
@@ -50,27 +64,37 @@ h1{
     text-align: right;
     font-size: 0.8em;
     margin-top: 25px;
+    padding-right: 0.1%;
+    box-sizing: border-box;
 }
 @media screen and (max-width: 960px){
-    a{
+    #wrapper{
+        padding-left: 0%;
+        padding-right: 0%;
+    }
+    h1{
+        padding-left: 7px;
+        padding-right: 7px;
+    }
+    ul a{
         max-width: 100%;
-    }
-    ul{
-        list-style-type: none;
-        padding: 0;
-    }
-    li{
-        border-bottom: 1px solid lightgray;
-    }
-    li:nth-child(2n){
-        background: whitesmoke;
-    }
+        width: 100%;
+        padding: 4px 7px 2px 7px;
+        box-sizing: border-box;
+    }    
     .date{
         float: none;
-        display: block;
+        padding: 0 7px 4px 7px;
+    }
+    .header{
+        padding: 5px 7px;
+        width: auto;
     }
     .header-date{
         float: none;
         clear: left;
+    }
+    #attr{
+        padding-right: 7px;
     }
 }

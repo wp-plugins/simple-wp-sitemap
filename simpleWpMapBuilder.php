@@ -189,6 +189,7 @@ class SimpleWpMapBuilder {
 		$html = '';
 		
 		if (!$homePage){ // if homepage isn't found in the query add it here (for instance if it's not a real "page" it wont be found)
+			date_default_timezone_set(get_option('timezone_string'));
 			$date = date('Y-m-d\TH:i:sP');
 			$xml .= $this->getXml($this->homeUrl, $date);
 			$html .= sprintf("%s\t</ul>\n", $this->getHtml($this->homeUrl, $date));

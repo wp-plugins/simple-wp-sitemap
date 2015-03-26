@@ -8,11 +8,11 @@ url{
     display: block;
     overflow: auto;
     padding: 5px;
-    font-size: 0.8em;
-    word-break: break-all;
+    font-size: 13px;
+    word-wrap: break-word;
 }
 url:nth-child(2n+1){
-    background: whitesmoke;
+    background: #f8f8f8;
 }
 loc{
     float: left;
