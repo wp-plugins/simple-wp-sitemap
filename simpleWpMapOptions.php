@@ -4,9 +4,20 @@
  * Class that handles all admin settings
  */
 class SimpleWpMapOptions {
+	private $homeUrl;
+	
+	// sets homeUrl with trailing slash
+	public function __construct() {
+		$this->homeUrl = esc_url(get_home_url() . (substr(get_home_url(), -1) === '/' ? '' : '/'));
+	}
+	
+	// Returns a sitemap url
+	public function sitemapUrl($format) {
+		return sprintf('%ssitemap.%s', $this->homeUrl, $format);
+	}
 	
 	// Updates the settings/options
-	public function setOptions($otherUrls, $blockUrls, $attrLink, $categories, $tags, $authors){
+	public function setOptions($otherUrls, $blockUrls, $attrLink, $categories, $tags, $authors) {
 		date_default_timezone_set(get_option('timezone_string'));
 		update_option('simple_wp_other_urls', $this->addUrls($otherUrls, get_option('simple_wp_other_urls')));		
 		update_option('simple_wp_block_urls', $this->addUrls($blockUrls));
@@ -17,20 +28,20 @@ class SimpleWpMapOptions {
 	}
 	
 	// Returns the options as strings to be displayed in textareas, and checkbox values
-	public function getOptions($val){
-		if ($val === 'simple_wp_other_urls' || $val === 'simple_wp_block_urls'){
+	public function getOptions($val) {
+		if ($val === 'simple_wp_other_urls' || $val === 'simple_wp_block_urls') {
 			$val = get_option($val);
 		}
-		elseif ($val === 'simple_wp_attr_link' || $val === 'simple_wp_disp_categories' || $val === 'simple_wp_disp_tags' || $val === 'simple_wp_disp_authors'){
+		elseif ($val === 'simple_wp_attr_link' || $val === 'simple_wp_disp_categories' || $val === 'simple_wp_disp_tags' || $val === 'simple_wp_disp_authors') {
 			return get_option($val) ? 'checked' : ''; // return checkbox checked values right here and dont bother with the loop below
 		}
-		else{
+		else {
 			$val = null;
 		}		
 		
-		if (!$this->isNullOrWhiteSpace($val)){
+		if (!$this->isNullOrWhiteSpace($val)) {
 			$str = '';
-			foreach($val as $sArr){
+			foreach ($val as $sArr){
 				$str .= $this->sanitizeUrl($sArr['url']) . "\n"; 
 			}
 			return trim($str);
@@ -39,38 +50,38 @@ class SimpleWpMapOptions {
 	}
 	
 	// Checks if string/array is empty
-	private function isNullOrWhiteSpace($word){
-		if (is_array($word)){
+	private function isNullOrWhiteSpace($word) {
+		if (is_array($word)) {
 			return false;
 		}
 		return ($word === null || $word === false || trim($word) === '');
 	}
 	
 	// Sanitizes urls with esc_url and trim
-	private function sanitizeUrl($url){
+	private function sanitizeUrl($url) {
 		return esc_url(trim($url));
 	}
 	
 	// Adds new urls to the sitemaps
-	private function addUrls($urls, $oldUrls=null){
+	private function addUrls($urls, $oldUrls=null) {
 		$arr = array();
 		
-		if (!$this->isNullOrWhiteSpace($urls)){
+		if (!$this->isNullOrWhiteSpace($urls)) {
 			$urls = explode("\n", $urls);
 			
 			foreach ($urls as $u){
-				if (!$this->isNullOrWhiteSpace($u)){
+				if (!$this->isNullOrWhiteSpace($u)) {
 					$u = $this->sanitizeUrl($u);
 					$b = false;
-					if ($oldUrls && is_array($oldUrls)){
-						foreach ($oldUrls as $o){
-							if ($o['url'] === $u && !$b){
+					if ($oldUrls && is_array($oldUrls)) {
+						foreach ($oldUrls as $o) {
+							if ($o['url'] === $u && !$b) {
 								$arr[] = $o;
 								$b = true;
 							}
 						}
 					}
-					if (!$b && strlen($u) < 500){
+					if (!$b && strlen($u) < 500) {
 						$arr[] = array('url' => $u, 'date' => date('Y-m-d\TH:i:sP'));
 					}
 				}
