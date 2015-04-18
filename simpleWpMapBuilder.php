@@ -10,9 +10,13 @@ class SimpleWpMapBuilder {
 	private $url;
 	private $homeUrl;
 	private $blockedUrls;
+	private $home;
+	private $posts;
+	private $pages;
 	private $categories;
 	private $tags;
 	private $authors;
+	private $order;
 	
 	// Constructor, the only public function this class has
 	public function __construct($command) {
@@ -29,10 +33,14 @@ class SimpleWpMapBuilder {
 	}
 	
 	// Generates the maps
-	private function generateSitemaps() {		
-		$this->categories = (get_option('simple_wp_disp_categories') ? array(0 => 0) : null);
-		$this->tags = (get_option('simple_wp_disp_tags') ? array(0 => 0) : null);
-		$this->authors = (get_option('simple_wp_disp_authors') ? array(0 => 0) : null);
+	private function generateSitemaps() {
+		$this->categories = (get_option('simple_wp_disp_categories') ? array(0 => 0) : false);
+		$this->tags = (get_option('simple_wp_disp_tags') ? array(0 => 0) : false);
+		$this->authors = (get_option('simple_wp_disp_authors') ? array(0 => 0) : false);
+		$this->order = get_option('simple_wp_disp_sitemap_order');
+		$this->posts = array('xml' => '', 'html' => '');
+		$this->pages = array('xml' => '', 'html' => '');
+		$this->home = null;
 		
 		$this->setUpBlockedUrls();
 		$this->getContent();
@@ -47,7 +55,7 @@ class SimpleWpMapBuilder {
 		$this->deleteFile('html');
 	}
 	
-	// Returns other urls (not standard wordpress) user has submitted
+	// Returns other urls user has submitted
 	private function getOtherPages() {
 		$html = '';
 		$xml = '';
@@ -100,18 +108,18 @@ class SimpleWpMapBuilder {
 		return "\t<div class=\"header\">\n\t\t<p class=\"header-txt\">$name:</p>\n\t\t<p class=\"header-date\">Last modified:</p>\n\t</div>\n";
 	}
 	
-	// Creates the actual sitemaps content, and querys the database
+	// Creates the actual sitemaps content, and querys the database. Might be long strings in one line.. I have a big screen
 	private function getContent() {
-		$q = new WP_Query('post_type=any&posts_per_page=-1');
+		$q = new WP_Query(array('post_type' => 'any', 'post_status' => 'publish', 'posts_per_page' => -1, 'has_password' => false));
 		$name = get_bloginfo('name');
-		$xml = sprintf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet type=\"text/css\" href=\"%s/css/xml.css\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">\n", $this->url);
-		$html = sprintf("<!doctype html>\n<html>\n<head>\n\t<meta charset=\"utf-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\t<title>%s Html Sitemap</title>\n\t<link rel=\"stylesheet\" href=\"%s/css/html.css\">\n</head>\n<body>\n<div id=\"wrapper\">\n\n\t<h1>%s Html Sitemap</h1>\n\n%s\t<ul>\n", $name, $this->url, $name, $this->htmlTableH('Home'));
-		$posts = array('xml' => '', 'html' => '');
-		$pages = array('xml' => '', 'html' => '');
-		$homePage = false;
+		$this->xml = sprintf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet type=\"text/css\" href=\"%s/css/xml.css\"?>\n<urlset xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9\n\thttp://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\" xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n", $this->url);
+		$this->html = sprintf("<!doctype html>\n<html>\n<head>\n\t<meta charset=\"utf-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\t<title>%s Html Sitemap</title>\n\t<link rel=\"stylesheet\" href=\"%s/css/html.css\">\n</head>\n<body>\n<div id=\"wrapper\">\n\n\t<h1>%s Html Sitemap</h1>\n\n", $name, $this->url, $name);
+		
+		global $post;
+		$localPost = $post;
 		
 		if ($q->have_posts()) {
-			while ($q->have_posts()) { 
+			while ($q->have_posts()) {
 				$q->the_post();
 				
 				$link = esc_url(get_permalink());
@@ -119,29 +127,77 @@ class SimpleWpMapBuilder {
 				
 				$this->getCategoriesTagsAndAuthor($date);
 				
-				if (!$this->isBlockedUrl($link)) {			
-					if ($link === $this->homeUrl) {
-						$xml .= $this->getXml($link, $date);
-						$html .= $this->getHtml($link, $date);
-						$homePage = true;
+				if (!$this->isBlockedUrl($link)) {
+					if (!$this->home && $link === $this->homeUrl) {
+						$this->home = array('xml' => $this->getXml($link, $date), 'html' => $this->getHtml($link, $date));
 					}
 					elseif ('page' === get_post_type()) {
-						$pages['xml'] .= $this->getXml($link, $date);
-						$pages['html'] .= $this->getHtml($link, $date);
+						$this->pages['xml'] .= $this->getXml($link, $date);
+						$this->pages['html'] .= $this->getHtml($link, $date);
 					}
 					else { // posts (also all custom post types are added here)
-						$posts['xml'] .= $this->getXml($link, $date);
-						$posts['html'] .= $this->getHtml($link, $date);
+						$this->posts['xml'] .= $this->getXml($link, $date);
+						$this->posts['html'] .= $this->getHtml($link, $date);
 					}
 				}
 			}
 		}
 		
-		$localArr = $this->mergeArraysAndGetOtherPages($posts, $pages, $homePage);
-		
-		$this->xml = sprintf("%s%s</urlset>", $xml, $localArr['xml']);
-		$this->html = sprintf("%s%s%s</div>\n</body>\n</html>", $html, $localArr['html'], $this->attributionLink());
+		$this->mergeArraysAndGetOtherPages();
 		wp_reset_postdata();
+		
+		$post = $localPost; // reset global post to its value before the loop
+	}
+	
+	// Gets a posts categories, tags and author, and compares for last modified date
+	private function getCategoriesTagsAndAuthor($date) {
+		if ($this->categories && ($postCats = get_the_category())) {
+			foreach ($postCats as $category) {
+				$id = $category->term_id;
+				if (!isset($this->categories[$id]) || $this->categories[$id] < $date) {
+					$this->categories[$id] = $date;
+				}
+			}
+		}
+		if ($this->tags && ($postTags = get_the_tags())) {
+			foreach ($postTags as $tag) {
+				$id = $tag->term_id;
+				if (!isset($this->tags[$id]) || $this->tags[$id] < $date) {
+					$this->tags[$id] = $date;
+				}
+			}
+		}
+		if ($this->authors && ($id = get_the_author_meta('ID'))) {
+			if (is_int($id) && (!isset($this->authors[$id]) || $this->authors[$id] < $date)) {
+				$this->authors[$id] = $date;
+			}
+		}
+	}
+	
+	// Merges the arrays with post data into strings and gets user submitted pages, categories, tags and author pages
+	private function mergeArraysAndGetOtherPages() {
+		$xml = '';
+		$html = '';		
+		$sections = $this->getSortedArray();
+		
+		foreach ($sections as $title => $content) {
+			if ($content) {
+				if ($title === 'Categories' || $title === 'Tags' || $title === 'Authors') {
+					$content = $this->stringifyCatsTagsAuths($title, $content);					
+					if ($title === 'Authors' && count($this->authors) <= 2) { // only one author (<= 2 cause one extra item is added to the array earlier)
+						$title = 'Author';
+					}
+				}
+				
+				if ($content['xml']) {
+					$xml .= $content['xml'];
+					$html .= sprintf("%s\t<ul>\n%s\t</ul>\n", $this->htmlTableH($title), $content['html']);				
+				}
+			}
+		}
+		
+		$this->xml = sprintf("%s%s</urlset>", $this->xml, $xml);
+		$this->html = sprintf("%s%s%s</div>\n</body>\n</html>", $this->html, $html, $this->attributionLink());
 	}
 	
 	// Displays attribution link if admin has checked the checkbox
@@ -152,103 +208,35 @@ class SimpleWpMapBuilder {
 		return '';
 	}
 	
-	// Gets a posts categories, tags and author, and compares for last modified date
-	private function getCategoriesTagsAndAuthor($date) {
-		if ($this->categories) {
-			if ($postCats = get_the_category()) {
-				foreach ($postCats as $category) {
-					$id = $category->term_id;
-					if (!isset($this->categories[$id]) || $this->categories[$id] < $date) {
-						$this->categories[$id] = $date;
-					}
-				}
-			}
+	// Gets sorted array according to specified order
+	private function getSortedArray() {
+		if (!($arr = $this->order)) {
+			$arr = array('Home' => null, 'Posts' => null, 'Pages' => null, 'Other' => null, 'Categories' => null, 'Tags' => null, 'Authors' => null);
 		}
-		if ($this->tags) {
-			if ($postTags = get_the_tags()) {
-				foreach ($postTags as $tag) {
-					$id = $tag->term_id;
-					if (!isset($this->tags[$id]) || $this->tags[$id] < $date) {
-						$this->tags[$id] = $date;
-					}
-				}
-			}
-		}
-		if ($this->authors) {
-			if ($id = get_the_author_meta('ID')) {
-				if (is_int($id) && (!isset($this->authors[$id]) || $this->authors[$id] < $date)) {
-					$this->authors[$id] = $date;
-				}
-			}
-		}
-	}
-	
-	// Merges the arrays with post data into strings and gets user submitted pages, categories, tags and author pages
-	private function mergeArraysAndGetOtherPages($posts, $pages, $homePage) {
-		$xml = '';
-		$html = '';
 		
-		if (!$homePage) { // if homepage isn't found in the query add it here (for instance if it's not a real "page" it wont be found)
-			date_default_timezone_set(get_option('timezone_string'));
+		if (!$this->home) { // if homepage isn't found in the query (for instance if it's not a real "page" it wont be found)
+			@date_default_timezone_set(get_option('timezone_string'));
 			$date = date('Y-m-d\TH:i:sP');
-			$xml .= $this->getXml($this->homeUrl, $date);
-			$html .= sprintf("%s\t</ul>\n", $this->getHtml($this->homeUrl, $date));
-		}
-		else{
-			$html .= "\t</ul>\n";
+			$this->home = array('xml' => $this->getXml($this->homeUrl, $date), 'html' => $this->getHtml($this->homeUrl, $date));
 		}
 		
-		if ($posts['xml']) { 
-			$xml .= $posts['xml'];
-			$html .= sprintf("%s\t<ul>\n%s\t</ul>\n", $this->htmlTableH('Posts'), $posts['html']);
-		}
-		if ($pages['xml']) {
-			$xml .= $pages['xml'];
-			$html .= sprintf("%s\t<ul>\n%s\t</ul>\n", $this->htmlTableH('Pages'), $pages['html']);
-		}
+		$arr['Home'] = $this->home;
+		$arr['Posts'] = $this->posts;
+		$arr['Pages'] = $this->pages;
+		$arr['Other'] = $this->getOtherPages();
+		$arr['Categories'] = $this->categories;
+		$arr['Tags'] = $this->tags;
+		$arr['Authors'] = $this->authors;
 		
-		$otherPages = $this->getOtherPages();
-		if ($otherPages['xml']) {
-			$xml .= $otherPages['xml'];
-			$html .= sprintf("%s\t<ul>\n%s\t</ul>\n", $this->htmlTableH('Other'), $otherPages['html']);
-		}
-		
-		if ($this->categories) {
-			$locArr = $this->stringifyCatsTagsAuths('Categories');
-			$xml .= $locArr['xml'];
-			$html .= $locArr['html'];
-		}		
-		if ($this->tags) {
-			$locArr = $this->stringifyCatsTagsAuths('Tags');
-			$xml .= $locArr['xml'];
-			$html .= $locArr['html'];
-		}
-		if ($this->authors) {
-			$locArr = $this->stringifyCatsTagsAuths(count($this->authors) > 2 ? 'Authors' : 'Author');
-			$xml .= $locArr['xml'];
-			$html .= $locArr['html'];
-		}
-		
-		return array('xml' => $xml, 'html' => $html);
+		return $arr;
 	}
 	
 	// Returns category, tag and author links as ready xml and html strings
-	private function stringifyCatsTagsAuths($type) {
-		$html = sprintf("%s\t<ul>\n", $this->htmlTableH($type));
+	private function stringifyCatsTagsAuths($type, $content) {
+		$html = '';
 		$xml = '';
 		
-		switch ($type) {
-			case 'Tags':
-				$arr = $this->tags;
-				break;
-			case 'Categories':
-				$arr = $this->categories;
-				break;
-			default: // 'Author'
-				$arr = $this->authors;
-		}
-		
-		foreach ($arr as $id => $date) {
+		foreach ($content as $id => $date) {
 			if ($date) {
 				$link = esc_url($this->getLink($id, $type));
 				if (!$this->isBlockedUrl($link)) {
@@ -257,18 +245,15 @@ class SimpleWpMapBuilder {
 				}
 			}
 		}
-		return array('xml' => $xml, 'html' => $html . "\t</ul>\n");
+		return array('xml' => $xml, 'html' => $html);
 	}
 	
 	// Returns either a category, tag or an author link
 	private function getLink($id, $type) {
 		switch ($type) {
-			case 'Tags':
-				return get_tag_link($id);
-			case 'Categories':
-				return get_category_link($id);
-			default: // 'Author'
-				return get_author_posts_url($id);
+			case 'Tags': return get_tag_link($id);
+			case 'Categories': return get_category_link($id);
+			default: return get_author_posts_url($id); // Authors
 		}
 	}
 	

@@ -4,8 +4,8 @@ License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: sitemap, google sitemap, xml, simple sitemap, html, xml sitemap, html sitemap, seo, seo sitemap
 Requires at least: 4.0
-Tested up to: 4.1.1
-Stable tag: 1.0.6
+Tested up to: 4.2
+Stable tag: 1.0.7
 
 An easy, fast and secure plugin that adds both an xml and an html sitemap to your site, which updates and maintains themselves so you dont have to!
 
@@ -49,6 +49,14 @@ Yes sir, it does.
 
 Sorry no, not at the moment it isn't.
 
+= Which one of the sitemaps should I submit to google and to other search engines? =
+
+The sitemap.xml one.
+
+= Do I actually have to go ahead and submit the sitemaps anywhere? =
+
+Not really, search engines usually finds them automatically when they visit your site. However if you have webmaster tools at google or bing etc, that could be a good place to do it to get statistics over indexed pages and stuff.
+
 = Are the sitemaps created "on the fly" dynamically or as static files? =
 
 As static files. They get updated everytime you create, edit or delete a post or page. And also when changes are made in the admin area.
@@ -65,10 +73,20 @@ When you deactivate the plugin they get removed automatically.
 
 == Changelog ==
 
+= 1.0.7 (April 18, 2015) =
+* Added option to specify own display order
+* Excluded drafts, private and password protected pages
+* Added some javascript and css to the admin area
+* Added a noscript tag in admin area
+* Increased amount of FAQ's
+* Made sure global post is resetted after loop
+* Fixed bug that gave error if no timezone was set
+* Couple other changes done in php and css
+
 = 1.0.6 (April 7, 2015) =
 * Made the plugin more user friendly
 * Added links to the sitemaps from the admin area
-* Added FAQ's (was about time huh)
+* Added FAQ's
 * Formatted the code a bit better
 
 = 1.0.5 (March 26, 2015) =

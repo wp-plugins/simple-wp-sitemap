@@ -17,17 +17,22 @@ class SimpleWpMapOptions {
 	}
 	
 	// Updates the settings/options
-	public function setOptions($otherUrls, $blockUrls, $attrLink, $categories, $tags, $authors) {
-		date_default_timezone_set(get_option('timezone_string'));
+	public function setOptions($otherUrls, $blockUrls, $attrLink, $categories, $tags, $authors, $orderArray) {
+		@date_default_timezone_set(get_option('timezone_string'));
 		update_option('simple_wp_other_urls', $this->addUrls($otherUrls, get_option('simple_wp_other_urls')));		
 		update_option('simple_wp_block_urls', $this->addUrls($blockUrls));
 		update_option('simple_wp_attr_link', $attrLink);
 		update_option('simple_wp_disp_categories', $categories);
 		update_option('simple_wp_disp_tags', $tags);
 		update_option('simple_wp_disp_authors', $authors);
+		
+		if ($this->checkOrder($orderArray)) {
+			asort($orderArray); // sort the array here
+			update_option('simple_wp_disp_sitemap_order', $orderArray);
+		}
 	}
 	
-	// Returns the options as strings to be displayed in textareas, and checkbox values
+	// Returns the options as strings to be displayed in textareas, checkbox values and orderarray (to do: refactor this messy function)
 	public function getOptions($val) {
 		if ($val === 'simple_wp_other_urls' || $val === 'simple_wp_block_urls') {
 			$val = get_option($val);
@@ -35,13 +40,16 @@ class SimpleWpMapOptions {
 		elseif ($val === 'simple_wp_attr_link' || $val === 'simple_wp_disp_categories' || $val === 'simple_wp_disp_tags' || $val === 'simple_wp_disp_authors') {
 			return get_option($val) ? 'checked' : ''; // return checkbox checked values right here and dont bother with the loop below
 		}
+		elseif ($val === 'simple_wp_disp_sitemap_order' && ($orderArray = get_option($val))) {
+			return $this->checkOrder($orderArray);
+		}
 		else {
 			$val = null;
-		}		
+		}
 		
 		if (!$this->isNullOrWhiteSpace($val)) {
 			$str = '';
-			foreach ($val as $sArr){
+			foreach ($val as $sArr) {
 				$str .= $this->sanitizeUrl($sArr['url']) . "\n"; 
 			}
 			return trim($str);
@@ -60,6 +68,19 @@ class SimpleWpMapOptions {
 	// Sanitizes urls with esc_url and trim
 	private function sanitizeUrl($url) {
 		return esc_url(trim($url));
+	}
+	
+	// Checks if orderArray has valid numbers (from 1 to 7)
+	private function checkOrder($numbers) {
+		if (is_array($numbers)) {
+			foreach ($numbers as $key => $num) {
+				if (!preg_match("/^[1-7]{1}$/", $num)) {
+					return false;
+				}
+			}
+			return $numbers;
+		}
+		return false;
 	}
 	
 	// Adds new urls to the sitemaps
