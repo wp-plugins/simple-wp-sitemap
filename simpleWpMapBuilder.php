@@ -4,32 +4,42 @@
  * The sitemap creating class
  */
 class SimpleWpMapBuilder {
-	private $xml;
-	private $html;
-	private $file;
+	private $home = null;
+	private $xml = false;
+	private $html = false;
+	private $posts = '';
+	private $pages = '';
+	private $content = '';
 	private $url;
-	private $homeUrl;
-	private $blockedUrls;
-	private $home;
-	private $posts;
-	private $pages;
-	private $categories;
 	private $tags;
-	private $authors;
 	private $order;
+	private $homeUrl;
+	private $authors;
+	private $categories;
+	private $blockedUrls;
 	
-	// Constructor, the only public function this class has
+	// Constructor
 	public function __construct($command) {
 		$this->url = esc_url(plugins_url() . '/simple-wp-sitemap');
 		$this->homeUrl = esc_url(get_home_url() . (substr(get_home_url(), -1) === '/' ? '' : '/'));
 		
 		switch ($command) {
-			case 'generate':
+			case 'xml':
+				$this->xml = true;
+				$this->generateSitemaps();
+				break;
+			case 'html':
+				$this->html = true;
 				$this->generateSitemaps();
 				break;
 			case 'delete':
-				$this->deleteSitemaps();
+				$this->deleteFiles();
 		}
+	}
+	
+	// Get method for content
+	public function getContent() {
+		return $this->content;
 	}
 	
 	// Generates the maps
@@ -38,39 +48,23 @@ class SimpleWpMapBuilder {
 		$this->tags = (get_option('simple_wp_disp_tags') ? array(0 => 0) : false);
 		$this->authors = (get_option('simple_wp_disp_authors') ? array(0 => 0) : false);
 		$this->order = get_option('simple_wp_disp_sitemap_order');
-		$this->posts = array('xml' => '', 'html' => '');
-		$this->pages = array('xml' => '', 'html' => '');
-		$this->home = null;
 		
 		$this->setUpBlockedUrls();
-		$this->getContent();
-		
-		$this->writeToFile($this->xml, 'xml');
-		$this->writeToFile($this->html, 'html');
-	}
-	
-	// Deletes the maps
-	private function deleteSitemaps() {
-		$this->deleteFile('xml');
-		$this->deleteFile('html');
+		$this->generateContent();
 	}
 	
 	// Returns other urls user has submitted
 	private function getOtherPages() {
-		$html = '';
 		$xml = '';
 		
 		if ($options = get_option('simple_wp_other_urls')) {
 			foreach ($options as $option) {
 				if ($option && is_array($option)) {
-					$url = esc_url($option['url']);
-					$date = esc_html($option['date']);
-					$html .= $this->getHtml($url, $date);
-					$xml .= $this->getXml($url, $date);
+					$xml .= $this->getXml(esc_url($option['url']), esc_html($option['date']));
 				}
 			}
 		}
-		return array('xml' => $xml, 'html' => $html);
+		return $xml;
 	}
 	
 	// Sets up blocked urls into an array
@@ -93,28 +87,26 @@ class SimpleWpMapBuilder {
 		return $this->blockedUrls && isset($this->blockedUrls[$url]);
 	}
 	
-	// Returns an html string
-	private function getHtml($link, $date) {
-		return "\t\t<li>\n\t\t\t<a title=\"$link\" href=\"$link\">$link</a>\n\t\t\t<span class=\"date\">$date</span>\n\t\t</li>\n";
-	}
 	
-	// Returns an xml string
+	// Returns an xml or html string
 	private function getXml($link, $date) {
-		return "<url>\n\t<loc>$link</loc>\n\t<lastmod>$date</lastmod>\n</url>\n";
+		if ($this->xml) {
+			return "<url>\n\t<loc>$link</loc>\n\t<lastmod>$date</lastmod>\n</url>\n";
+		}
+		else{
+			return "<li><a title=\"$link\" href=\"$link\">$link</a><span class=\"date\">$date</span></li>";
+		}
 	}
 	
 	// Returns table headers with specific names (has been changed to div)
 	private function htmlTableH($name) {
-		return "\t<div class=\"header\">\n\t\t<p class=\"header-txt\">$name:</p>\n\t\t<p class=\"header-date\">Last modified:</p>\n\t</div>\n";
+		return '<div class="header"><p class="header-txt">' . $name . ':</p><p class="header-date">Last modified:</p></div>';
 	}
 	
-	// Creates the actual sitemaps content, and querys the database. Might be long strings in one line.. I have a big screen
-	private function getContent() {
+	// Gets the actual sitemaps content, and querys the database
+	private function generateContent() {
 		$q = new WP_Query(array('post_type' => 'any', 'post_status' => 'publish', 'posts_per_page' => -1, 'has_password' => false));
-		$name = get_bloginfo('name');
-		$this->xml = sprintf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet type=\"text/css\" href=\"%s/css/xml.css\"?>\n<urlset xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9\n\thttp://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\" xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n", $this->url);
-		$this->html = sprintf("<!doctype html>\n<html>\n<head>\n\t<meta charset=\"utf-8\">\n\t<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n\t<title>%s Html Sitemap</title>\n\t<link rel=\"stylesheet\" href=\"%s/css/html.css\">\n</head>\n<body>\n<div id=\"wrapper\">\n\n\t<h1>%s Html Sitemap</h1>\n\n", $name, $this->url, $name);
-		
+				
 		global $post;
 		$localPost = $post;
 		
@@ -129,15 +121,13 @@ class SimpleWpMapBuilder {
 				
 				if (!$this->isBlockedUrl($link)) {
 					if (!$this->home && $link === $this->homeUrl) {
-						$this->home = array('xml' => $this->getXml($link, $date), 'html' => $this->getHtml($link, $date));
+						$this->home = $this->getXml($link, $date);
 					}
 					elseif ('page' === get_post_type()) {
-						$this->pages['xml'] .= $this->getXml($link, $date);
-						$this->pages['html'] .= $this->getHtml($link, $date);
+						$this->pages .= $this->getXml($link, $date);
 					}
 					else { // posts (also all custom post types are added here)
-						$this->posts['xml'] .= $this->getXml($link, $date);
-						$this->posts['html'] .= $this->getHtml($link, $date);
+						$this->posts .= $this->getXml($link, $date);
 					}
 				}
 			}
@@ -177,33 +167,36 @@ class SimpleWpMapBuilder {
 	// Merges the arrays with post data into strings and gets user submitted pages, categories, tags and author pages
 	private function mergeArraysAndGetOtherPages() {
 		$xml = '';
-		$html = '';		
+		$name = get_bloginfo('name');
 		$sections = $this->getSortedArray();
 		
 		foreach ($sections as $title => $content) {
 			if ($content) {
 				if ($title === 'Categories' || $title === 'Tags' || $title === 'Authors') {
-					$content = $this->stringifyCatsTagsAuths($title, $content);					
-					if ($title === 'Authors' && count($this->authors) <= 2) { // only one author (<= 2 cause one extra item is added to the array earlier)
+					$content = $this->stringifyCatsTagsAuths($title, $content);
+					if ($title === 'Authors' && count($this->authors) <= 2) { // only one author
 						$title = 'Author';
 					}
 				}
 				
-				if ($content['xml']) {
-					$xml .= $content['xml'];
-					$html .= sprintf("%s\t<ul>\n%s\t</ul>\n", $this->htmlTableH($title), $content['html']);				
+				if ($content) {
+					$xml .= $this->xml ? $content : $this->htmlTableH($title) . "<ul>$content</ul>";
 				}
 			}
 		}
-		
-		$this->xml = sprintf("%s%s</urlset>", $this->xml, $xml);
-		$this->html = sprintf("%s%s%s</div>\n</body>\n</html>", $this->html, $html, $this->attributionLink());
+				
+		if ($this->xml) {
+			$this->content = sprintf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<?xml-stylesheet type=\"text/css\" href=\"%s/css/xml.css\"?>\n<urlset xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9\n\thttp://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\" xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n%s</urlset>", $this->url, $xml);
+		}
+		else {
+			$this->content = sprintf('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>%s Html Sitemap</title><link rel="stylesheet" href="%s/css/html.css"></head><body><div id="wrapper"><h1>%s Html Sitemap</h1>%s%s</div></body></html>', $name, $this->url, $name, $xml, $this->attributionLink());
+		}
 	}
 	
 	// Displays attribution link if admin has checked the checkbox
 	private function attributionLink() {
 		if (get_option('simple_wp_attr_link')) {
-			return "\t<p id=\"attr\">Generated by: <a href=\"http://www.webbjocke.com/simple-wp-sitemap/\">Simple Wp Sitemap</a></p>\n";
+			return '<p id="attr">Generated by: <a href="http://www.webbjocke.com/simple-wp-sitemap/">Simple Wp Sitemap</a></p>';
 		}
 		return '';
 	}
@@ -216,24 +209,23 @@ class SimpleWpMapBuilder {
 		
 		if (!$this->home) { // if homepage isn't found in the query (for instance if it's not a real "page" it wont be found)
 			@date_default_timezone_set(get_option('timezone_string'));
-			$date = date('Y-m-d\TH:i:sP');
-			$this->home = array('xml' => $this->getXml($this->homeUrl, $date), 'html' => $this->getHtml($this->homeUrl, $date));
+			$this->home = $this->getXml($this->homeUrl, date('Y-m-d\TH:i:sP'));
 		}
 		
-		$arr['Home'] = $this->home;
-		$arr['Posts'] = $this->posts;
-		$arr['Pages'] = $this->pages;
+		// copy to array and also clear some memory (some sites have a huge amount of posts)
+		$arr['Home'] = $this->home; $this->home = null;
+		$arr['Posts'] = $this->posts; $this->posts = null;
+		$arr['Pages'] = $this->pages; $this->pages = null;
+		$arr['Categories'] = $this->categories; $this->categories = null;
+		$arr['Tags'] = $this->tags; $this->tags = null;
+		$arr['Authors'] = $this->authors; $this->authors = null;
 		$arr['Other'] = $this->getOtherPages();
-		$arr['Categories'] = $this->categories;
-		$arr['Tags'] = $this->tags;
-		$arr['Authors'] = $this->authors;
 		
 		return $arr;
 	}
 	
 	// Returns category, tag and author links as ready xml and html strings
 	private function stringifyCatsTagsAuths($type, $content) {
-		$html = '';
 		$xml = '';
 		
 		foreach ($content as $id => $date) {
@@ -241,11 +233,10 @@ class SimpleWpMapBuilder {
 				$link = esc_url($this->getLink($id, $type));
 				if (!$this->isBlockedUrl($link)) {
 					$xml .= $this->getXml($link, $date);
-					$html .= $this->getHtml($link, $date);
 				}
 			}
 		}
-		return array('xml' => $xml, 'html' => $html);
+		return $xml;
 	}
 	
 	// Returns either a category, tag or an author link
@@ -257,34 +248,21 @@ class SimpleWpMapBuilder {
 		}
 	}
 	
-	// Sets up file paths to home directory
-	private function setFile($fileType) {
-		$this->file = sprintf("%s%ssitemap.%s", get_home_path(), (substr(get_home_path(), -1) === '/' ? '' : '/'), $fileType);
-	}
-	
-	// Creates sitemap files and overrides old ones if there's any
-	private function writeToFile($data, $fileType) {
-		$this->setFile($fileType);
-		try {
-			$fp = fopen($this->file, 'w');
-			if (file_exists($this->file)) {
-				fwrite($fp, $data);
-				fclose($fp);
+	// Deletes the sitemap files from old versions of the plugin
+	private function deleteFiles() {
+		if (function_exists('get_home_path')) {
+			$path = sprintf('%s%ssitemap', get_home_path(), (substr(get_home_path(), -1) === '/' ? '' : '/'));
+			try {
+				if (file_exists($path . '.xml')) {
+					unlink($path . '.xml');
+				}
+				if (file_exists($path . '.html')) {
+					unlink($path . '.html');
+				}
 			}
-		}
-		catch (Exception $ex) {
-			die();
-		}
-	}
-	
-	// Deletes the sitemap files
-	private function deleteFile($fileType) {
-		$this->setFile($fileType);
-		try {
-			unlink($this->file);
-		}
-		catch (Exception $ex) {
-			die();
+			catch (Exception $ex) {
+				return;
+			}
 		}
 	}
 }

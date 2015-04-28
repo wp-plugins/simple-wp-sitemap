@@ -4,7 +4,7 @@
  * Plugin Name: Simple Wp Sitemap
  * Plugin URI: http://www.webbjocke.com/simple-wp-sitemap/
  * Description: An easy, fast and secure plugin that adds both an xml and an html sitemap to your site, which updates and maintains themselves so you dont have to!
- * Version: 1.0.7
+ * Version: 1.0.8
  * Author: Webbjocke
  * Author URI: http://www.webbjocke.com/
  * License: GPLv3
@@ -13,17 +13,32 @@
 // Main class
 
 class SimpleWpSitemap {
+	private static $version = 8;
 	
-	// Updates the sitemaps
-	public static function updateSitemaps() {
-		require_once('simpleWpMapBuilder.php');	
-		new SimpleWpMapBuilder('generate');
-	}
-	
-	// Delete the files sitemap.xml and sitemap.html on deactivate
-	public static function removeSitemaps() {
+	// Activates the plugin
+	public static function activateSitemaps() {
+		self::rewriteRules();
+		flush_rewrite_rules();
+		
+		update_option('simple_wp_sitemap_version', self::$version);
+		
+		// deletes files sitemap.xml and .html from old versions of the plugin
 		require_once('simpleWpMapBuilder.php');
 		new SimpleWpMapBuilder('delete');
+	}
+	
+	// Deactivates the plugin
+	public static function deactivateSitemaps() {
+		flush_rewrite_rules();
+	}
+	
+	// Updates the plugin (calls activateSitemaps)
+	public static function updateCheck() {
+		$current = get_option('simple_wp_sitemap_version');
+		
+		if (!$current || $current < self::$version) {
+			self::activateSitemaps();
+		}
 	}
 	
 	// Adds a link to settings from the plugins page
@@ -48,6 +63,43 @@ class SimpleWpSitemap {
 		register_setting('simple_wp-sitemap-group', 'simple_wp_disp_tags');
 		register_setting('simple_wp-sitemap-group', 'simple_wp_disp_authors');
 		register_setting('simple_wp-sitemap-group', 'simple_wp_disp_sitemap_order');
+		self::updateCheck();
+	}
+	
+	// Rewrite rules for sitemaps
+	public static function rewriteRules() {
+		add_rewrite_rule('sitemap\.xml$', 'index.php?thesimplewpsitemap=xml', 'top');
+		add_rewrite_rule('sitemap\.html$', 'index.php?thesimplewpsitemap=html', 'top');
+	}
+	
+	// Add custom query
+	public static function addSitemapQuery($vars) {
+		$vars[] = 'thesimplewpsitemap';
+		return $vars;
+	}
+	
+	// Generates the content
+	public static function generateSitemapContent() {
+		global $wp_query;
+		
+		if (isset($wp_query->query_vars['thesimplewpsitemap'])) {
+			$q = $wp_query->query_vars['thesimplewpsitemap'];
+		
+			if (!empty($q) && ($q === 'xml' || $q === 'html')) {
+				$wp_query->is_404 = false;
+				require_once('simpleWpMapBuilder.php');
+			
+				if ($q === 'xml') {
+					$builder = new SimpleWpMapBuilder('xml');
+					header('Content-type: application/xml; charset=utf-8');
+				}
+				else {
+					$builder = new SimpleWpMapBuilder('html');
+				}
+				echo $builder->getContent();
+				exit;
+			}
+		}
 	}
 	
 	// Add custom scripts and styles to the plugins customization page in admin area
@@ -60,23 +112,22 @@ class SimpleWpSitemap {
 	}
 	
 	// Interface for settings page, also handles initial post request when settings are changed
-	public static function sitemapAdminArea() {
+	public static function sitemapAdminArea() {		
 		require_once('simpleWpMapOptions.php');
 		$options = new SimpleWpMapOptions();
 		
 		if (isset($_POST['simple_wp_other_urls'], $_POST['simple_wp_block_urls'], $_POST['simple_wp_home_n'], $_POST['simple_wp_posts_n'], $_POST['simple_wp_pages_n'], $_POST['simple_wp_other_n'], $_POST['simple_wp_categories_n'], $_POST['simple_wp_tags_n'], $_POST['simple_wp_authors_n'])) {
 			
 			$options->setOptions($_POST['simple_wp_other_urls'], $_POST['simple_wp_block_urls'], (isset($_POST['simple_wp_attr_link']) ? 1 : 0), (isset($_POST['simple_wp_disp_categories']) ? 1 : 0), (isset($_POST['simple_wp_disp_tags']) ? 1 : 0), (isset($_POST['simple_wp_disp_authors']) ? 1 : 0), array('Home' => $_POST['simple_wp_home_n'], 'Posts' => $_POST['simple_wp_posts_n'], 'Pages' => $_POST['simple_wp_pages_n'], 'Other' => $_POST['simple_wp_other_n'], 'Categories' => $_POST['simple_wp_categories_n'], 'Tags' => $_POST['simple_wp_tags_n'], 'Authors' => $_POST['simple_wp_authors_n']));
-			self::updateSitemaps();
 		} ?>
 		
 		<div class="wrap">
 		
 			<h2>Simple Wp Sitemap settings</h2>
 			
-			<p>Your two sitemaps have been created and are active! Here you can change and customize them</p>
+			<p>Your two sitemaps are active! Here you can change and customize them.</p>
 			
-			<p><strong>Links to your xml and html sitemap:</strong>
+			<p><strong>Links to your xml and html sitemap:</strong></p>
 			
 			<ul>
 				<li>Xml sitemap: <a href="<?php echo $options->sitemapUrl('xml'); ?>"><?php echo $options->sitemapUrl('xml'); ?></a></li>
@@ -118,7 +169,7 @@ class SimpleWpSitemap {
 				
 				<table id="sitemap-table-hide" class="widefat form-table">
 				
-					<tr><td><strong>Change display order</td></tr>
+					<tr><td><strong>Change display order</strong></td></tr>
 					<tr><td>If you want to change the display order in your sitemaps, click the arrows to move sections up or down. They will be displayed as ordered below, highest up is displayed first and lowest down last.</td></tr>
 					<tr><td>
 					
@@ -144,17 +195,20 @@ class SimpleWpSitemap {
 					<tr><td id="sitemap-defaults" title="Restore the default display order">Restore default order</td></tr>
 					
 				</table>
-			
+											
 				<p class="submit"><input type="submit" class="button-primary" value="<?php _e('Save Changes'); ?>"></p>
+				
+				<p>(If you have a caching plugin, you might have to clear cache before changes will be shown in the sitemaps)</p>
 				
 			</form>
 			
 		</div>
 <?php }
 }
+register_activation_hook(__FILE__, array('SimpleWpSitemap', 'activateSitemaps'));
+register_deactivation_hook(__FILE__, array('SimpleWpSitemap', 'deactivateSitemaps'));
 add_action('admin_menu', array('SimpleWpSitemap', 'sitemapAdminSetup'));
-add_action('deleted_post', array('SimpleWpSitemap', 'updateSitemaps'));
-add_action('save_post', array('SimpleWpSitemap', 'updateSitemaps'));
-register_activation_hook(__FILE__, array('SimpleWpSitemap', 'updateSitemaps'));
-register_deactivation_hook(__FILE__, array('SimpleWpSitemap', 'removeSitemaps'));
+add_action('init', array('SimpleWpSitemap', 'rewriteRules'), 1);
+add_filter('query_vars', array('SimpleWpSitemap', 'addSitemapQuery'), 1);
+add_filter('template_redirect', array('SimpleWpSitemap', 'generateSitemapContent'), 1);
 add_filter("plugin_action_links_" . plugin_basename(__FILE__), array('SimpleWpSitemap', 'pluginSettingsLink'));
