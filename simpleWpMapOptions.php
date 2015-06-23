@@ -1,4 +1,4 @@
-<?php if (!defined( 'ABSPATH' )){ die(); }
+<?php if (!defined( 'ABSPATH' )) { die(); }
 
 /*
  * Class that handles all admin settings
@@ -6,18 +6,18 @@
 class SimpleWpMapOptions {
 	private $homeUrl;
 	
-	// sets homeUrl with trailing slash
-	public function __construct() {
+	// Constructor: sets homeUrl with trailing slash
+	public function __construct () {
 		$this->homeUrl = esc_url(get_home_url() . (substr(get_home_url(), -1) === '/' ? '' : '/'));
 	}
 	
 	// Returns a sitemap url
-	public function sitemapUrl($format) {
+	public function sitemapUrl ($format) {
 		return sprintf('%ssitemap.%s', $this->homeUrl, $format);
 	}
 	
 	// Updates the settings/options
-	public function setOptions($otherUrls, $blockUrls, $attrLink, $categories, $tags, $authors, $orderArray) {
+	public function setOptions ($otherUrls, $blockUrls, $attrLink, $categories, $tags, $authors, $orderArray) {
 		@date_default_timezone_set(get_option('timezone_string'));
 		update_option('simple_wp_other_urls', $this->addUrls($otherUrls, get_option('simple_wp_other_urls')));		
 		update_option('simple_wp_block_urls', $this->addUrls($blockUrls));
@@ -33,11 +33,11 @@ class SimpleWpMapOptions {
 	}
 	
 	// Returns the options as strings to be displayed in textareas, checkbox values and orderarray (to do: refactor this messy function)
-	public function getOptions($val) {
-		if ($val === 'simple_wp_other_urls' || $val === 'simple_wp_block_urls') {
+	public function getOptions ($val) {
+		if (preg_match("/^simple_wp_(other_urls|block_urls)$/", $val)) {
 			$val = get_option($val);
 		}
-		elseif ($val === 'simple_wp_attr_link' || $val === 'simple_wp_disp_categories' || $val === 'simple_wp_disp_tags' || $val === 'simple_wp_disp_authors') {
+		elseif (preg_match("/^simple_wp_(attr_link|disp_categories|disp_tags|disp_authors)$/", $val)) {
 			return get_option($val) ? 'checked' : ''; // return checkbox checked values right here and dont bother with the loop below
 		}
 		elseif ($val === 'simple_wp_disp_sitemap_order' && ($orderArray = get_option($val))) {
@@ -47,18 +47,17 @@ class SimpleWpMapOptions {
 			$val = null;
 		}
 		
+		$str = '';
 		if (!$this->isNullOrWhiteSpace($val)) {
-			$str = '';
 			foreach ($val as $sArr) {
 				$str .= $this->sanitizeUrl($sArr['url']) . "\n"; 
-			}
-			return trim($str);
+			}	
 		}
-		return '';
+		return trim($str);
 	}
 	
 	// Checks if string/array is empty
-	private function isNullOrWhiteSpace($word) {
+	private function isNullOrWhiteSpace ($word) {
 		if (is_array($word)) {
 			return false;
 		}
@@ -66,12 +65,12 @@ class SimpleWpMapOptions {
 	}
 	
 	// Sanitizes urls with esc_url and trim
-	private function sanitizeUrl($url) {
+	private function sanitizeUrl ($url) {
 		return esc_url(trim($url));
 	}
 	
 	// Checks if orderArray has valid numbers (from 1 to 7)
-	private function checkOrder($numbers) {
+	private function checkOrder ($numbers) {
 		if (is_array($numbers)) {
 			foreach ($numbers as $key => $num) {
 				if (!preg_match("/^[1-7]{1}$/", $num)) {
@@ -84,7 +83,7 @@ class SimpleWpMapOptions {
 	}
 	
 	// Adds new urls to the sitemaps
-	private function addUrls($urls, $oldUrls=null) {
+	private function addUrls ($urls, $oldUrls=null) {
 		$arr = array();
 		
 		if (!$this->isNullOrWhiteSpace($urls)) {

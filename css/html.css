@@ -7,26 +7,33 @@ body{
     font-size: 13px;
     background: #fff;
 }
+#wrapper{
+    max-width: 1080px;
+    padding: 15px 2% 40px 2%;
+    margin: 20px auto;
+}
 h1{
     font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
     margin: 0 0.1% 25px 0.1%;
     word-wrap: break-word;
 }
 a{
-    text-decoration: none;
-    color: #000;
-    transition: all 0.3s;
+    width: 100%;
+    display: block;
     display: inline-block;
     word-wrap: break-word;
     vertical-align: top;
-    max-width: 75%;
+    text-decoration: none;
+    color: #000;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+    transition: all 0.3s;
 }
-a:hover{
-    background: #f8f8f8;
-    text-decoration: underline;
+a:hover, a:focus{
+    background: #f0f0f0;
 }
-a:active, a:focus{
-    color: #0000ff;
+a:active{
+    border-color: #c8c8c8;
 }
 ul{
     list-style-type: none;
@@ -35,19 +42,15 @@ ul{
 li:nth-child(2n){
     background: #f8f8f8;
 }
-#wrapper{
-    max-width: 1080px;
-    padding: 15px 2% 40px 2%;
-    margin: 20px auto;
-}
-ul a, .date{
-    padding: 4px 0.1%;
-}
-.date, .header-date{
-    float: right;
-}
 .date{
     display: inline-block;
+    float: right;
+    padding: 3px 0.1%;
+}
+.link{
+    float: left;
+    max-width: 75%;
+    padding: 3px 0.1%;
 }
 .header{
     overflow: auto;
@@ -60,13 +63,20 @@ ul a, .date{
 .header-txt{
     float: left;
 }
+.header-date{
+    float: right;
+}
 #attr{
     width: 100%;
-    text-align: right;
-    font-size: 0.8em;
+    font-size: 0.85em;
     margin-top: 25px;
     padding-right: 0.1%;
     box-sizing: border-box;
+}
+#attr-a{
+    float: right;
+    width: auto;
+    padding: 7px;
 }
 @media screen and (max-width: 960px){
     body{
@@ -80,11 +90,13 @@ ul a, .date{
         padding-left: 7px;
         padding-right: 7px;
     }
-    ul a{
+    ul .link{
+        display: block;
         max-width: 100%;
         width: 100%;
         padding: 4px 7px 2px 7px;
         box-sizing: border-box;
+        float: none;
     }    
     .date{
         float: none;

@@ -9,7 +9,7 @@
             this.c.advanced.on('click', function () { that.changeState($(this), that.c.normal, that.c.tableAdvanced, that.c.tableNormal); });
             this.c.ul.on('click', function (e) { that.changeOrder($(e.target)); });
             this.c.defaults.on('click', function () { that.restoreDefaults(); });
-            this.c.form.on('submit', function (e) { that.submitForm(e); });
+            this.c.form.on('submit', function () { that.submitForm(); });
         };
 
         this.changeState = function (btn, otherBtn, table, otherTable) {
@@ -30,9 +30,9 @@
                 li.next().after(li.clone());
                 li.remove();
             }
-        }
+        };
         
-        this.submitForm = function (e) {
+        this.submitForm = function () {
             var inputs = this.c.ul.find('input');
 
             $.each(inputs, function (i) {
@@ -41,13 +41,14 @@
         };
 
         this.restoreDefaults = function () {
-            var sections = ['Home', 'Posts', 'Pages', 'Other', 'Categories', 'Tags', 'Authors'];
+            var sections = ['Home', 'Posts', 'Pages', 'Other', 'Categories', 'Tags', 'Authors'],
+                html = '';
 
-            this.c.ul.empty();
+            $.each(sections, function (i) {
+                html += '<li>' + sections[i] + '<span class="sitemap-down" title="move down"></span><span class="sitemap-up" title="move up"></span><input type="hidden" name="simple_wp_' + sections[i].toLowerCase() + '_n" value="' + (i + 1) + '"></li>';
+            });
 
-            for (var i = 0; i < sections.length; i++) {
-                this.c.ul.append('<li>' + sections[i] + '<span class="sitemap-down" title="move down"></span><span class="sitemap-up" title="move up"></span><input type="hidden" name="simple_wp_' + sections[i].toLowerCase() + '_n" value="' + (i + 1) + '"></li>');
-            }
+            this.c.ul.empty().append(html);
         };
     };
 

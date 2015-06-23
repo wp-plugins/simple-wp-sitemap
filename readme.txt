@@ -1,11 +1,12 @@
 === Simple Wp Sitemap ===
 Contributors: Webbjocke
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=UH6ANJA7M8DNS
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl.html
 Tags: sitemap, google sitemap, xml, simple sitemap, html, xml sitemap, html sitemap, seo, seo sitemap
 Requires at least: 4.0
-Tested up to: 4.2.1
-Stable tag: 1.0.8
+Tested up to: 4.2.2
+Stable tag: 1.0.9
 
 An easy, fast and secure plugin that adds both an xml and an html sitemap to your site, which updates and maintains themselves so you dont have to!
 
@@ -27,7 +28,7 @@ And yes, of course the sitemaps are mobile friendly. They also work well with ca
    2. Either search for "simple-wp-sitemap" and click install, or hit "upload plugin" and upload the zip file.
    3. Another way is by just uploading the "simple-wp-sitemap" folder via ftp to the /wp-content/plugins/ directory.
 
-2. Activate the plugin and thats it, done. The two sitemaps will be generated when visited, and can be found at like yourpage.com/sitemap.xml and yourpage.com/sitemap.html.
+2. Activate the plugin and that's it, done. The two sitemaps will be generated when visited, and can be found at like yourpage.com/sitemap.xml and yourpage.com/sitemap.html.
 
 3. Customize the plugin and add/block pages by hitting the "Simple Wp Sitemap" option in the settings menu.
 
@@ -72,6 +73,11 @@ When you deactivate the plugin they get removed automatically.
 3. Xml sitemap
 
 == Changelog ==
+
+= 1.0.9 (Jun 23, 2015) =
+* Added donation link
+* Made the sitemaps compatible down to ie7
+* Minor changes in php, css and js
 
 = 1.0.8 (April 29, 2015) =
 * Now generates dynamic sitemaps instead of static files

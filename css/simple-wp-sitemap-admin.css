@@ -29,6 +29,36 @@
 #sitemap-table-show, .sitemap-shown{
     display: block;
 }
+#simple-wp-sitemap-donate{
+	position: relative,
+}
+#simple-wp-sitemap-donate img{
+	position: absolute;
+	margin: -1px 0 0 7px;
+	transition: all 0.3s;
+}
+#simple-wp-sitemap-donate img:hover{
+	opacity: 0.8;
+}
+#simple-wp-sitemap-h2{
+	float: left;
+	width: 100%;
+	margin-bottom: 10px;
+}
+#simple-wp-sitemap-h2 img{
+	float: left;
+}
+#simple-wp-sitemap-h2 span{
+	float: left;
+	padding: 5px 0 0 10px;
+}
+@media screen and (max-width: 500px){
+    #simple-wp-sitemap-donate img{
+		position: static;
+		display: block;
+		margin: 10px 0 0 0;
+    }
+}
 #sitemap-defaults{
     text-decoration: underline;
     float: left;
